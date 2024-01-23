@@ -39,3 +39,14 @@ export abstract class BaseEntity implements Entity {
     this.updatedAt = new Date();
   }
 }
+
+export interface NotFoundException {
+  status: 404;
+  errors: {
+    detail: string;
+  };
+}
+export interface ValidationException {
+  status: 400;
+  errors: Record<string, any>;
+}

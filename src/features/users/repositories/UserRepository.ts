@@ -1,6 +1,7 @@
 import { Account, Prisma, User } from "@prisma/client";
-import { AccountModel, UserModel } from "../models";
+import { AccountModel, UserModel } from "../../auth/models";
 import { isEmpty } from "lodash";
+import { NotFoundException, ValidationException } from "../../../shared/types";
 
 /**
  * Common Interfacefor ineracting with datasource to manage user, authenticate and authorize
@@ -11,7 +12,7 @@ class UserRepository {
    * creates user if no other user with unique fields like phoneNumber, email or username dont exist
    * @param entity User information sed to create new user
    * @returns {User} object
-   * @throws {{status: 400, errrors: Record<string, any>}} if user with unique field found
+   * @throws {ValidationException} if user with unique field found
    */
   async create(entity: User): Promise<User> {
     const errors: any = {};
@@ -32,10 +33,12 @@ class UserRepository {
   /**
    * Finds user with specified id
    * @param id User unique id
-   * @returns {User} if user exist otherwise null
+   * @throws {NotFoundException}
+   * @returns {User}
    */
-  async findOneById(id: string): Promise<User | null> {
+  async findOneById(id: string): Promise<User> {
     const user = await UserModel.findFirst({ where: { id } });
+    if (!user) throw { status: 404, errors: { detail: "User not found" } };
     return user;
   }
   /**
@@ -117,3 +120,5 @@ class UserRepository {
     return await UserModel.delete({ where: { id } });
   }
 }
+
+export default UserRepository;
