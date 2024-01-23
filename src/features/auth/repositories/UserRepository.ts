@@ -1,5 +1,5 @@
 import { Account, Prisma, User } from "@prisma/client";
-import { UserModel } from "../models";
+import { AccountModel, UserModel } from "../models";
 import { isEmpty } from "lodash";
 
 /**
@@ -66,15 +66,25 @@ class UserRepository {
   /**
    * Links a user to account if not already linked
    * @param account Account bject to be linked wuth user object
+   * @param user User object to be linked wuth account object
    * @returns {boolean} true if linkage successfull or link already existed otherwise false
    * @todo Complee the linkage
    */
-  async linkAccount(account: Account): Promise<boolean> {
+  async linkAccount(user: User, account: Account): Promise<boolean> {
+    const user_ = await this.findByAccount(account);
+    // Link if no link exist for he account
+    if (!user_ || user.id !== user_.id) {
+      await AccountModel.update({
+        where: { id: account.id },
+        data: { userId: user.id },
+      });
+      return true;
+    }
     // check if already linked and return true
-    if (await this.findByAccount(account)) return true;
-    // Ensure account is not linked to other user
-    //
-    return true
+    if (user.id === user_.id) {
+      return true;
+    }
+    return false;
   }
   /**
    * Checks if User object matching creatiria exists
