@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { authRepo } from "../repositories";
+import { Login, Register } from "../schema";
+import { APIException } from "../../../shared/exceprions";
 
 export const registerUser = async (
   req: Request,
@@ -7,7 +9,11 @@ export const registerUser = async (
   next: NextFunction
 ) => {
   try {
-    return res.json({ action: "Register user!" });
+    const validation = await Register.safeParseAsync(req.body);
+    if (!validation.success)
+      throw new APIException(400, validation.error.format());
+    const user = await authRepo.register(validation.data);
+    return res.json({ user });
   } catch (error) {
     next(error);
   }
@@ -19,7 +25,11 @@ export const loginUser = async (
   next: NextFunction
 ) => {
   try {
-    return res.json({ action: "Login user!" });
+    const validation = await Login.safeParseAsync(req.body);
+    if (!validation.success)
+      throw new APIException(400, validation.error.format());
+    const user = await authRepo.login(validation.data);
+    return res.json({ user });
   } catch (error) {
     next(error);
   }
