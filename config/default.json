@@ -1,0 +1,10 @@
+{
+  "name": "The hive auth services",
+  "port": null,
+  "db": "",
+  "jwt": "",
+  "registry": {
+    "url": "http://localhost:9000",
+    "version": "*"
+  }
+}
