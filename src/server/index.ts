@@ -6,6 +6,8 @@ import { handleErrors } from "../middlewares";
 import logger from "../shared/logger";
 // import { oauthRoutesHandler } from "./auth.config";
 import prisma from "../../prisma/client";
+import { default as usersRouter } from "../features/users/routes";
+import { default as authRoutes } from "../features/auth/routes";
 
 /**
  * Handle database connection logic
@@ -13,7 +15,6 @@ import prisma from "../../prisma/client";
 export const dbConnection = async () => {
   try {
     // Connect to database here
-    
   } catch (error) {
     logger.error("[x]Could not connect to database" + error);
     process.exit(1); // Exit the application on database connection error
@@ -46,6 +47,8 @@ export const configureExpressApp = async (app: Application) => {
 
   //------------------- routes --------------------------------
   // Add routes here
+  app.use("/users", usersRouter);
+  app.use("/api/auth", authRoutes);
   //-------------------end routes-----------------------------
 
   //---------------- error handler -----------------------

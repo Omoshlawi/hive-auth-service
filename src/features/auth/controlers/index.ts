@@ -24,3 +24,15 @@ export const loginUser = async (
     next(error);
   }
 };
+
+export const authProviders = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    return res.json({ action: "Auth Providers!" });
+  } catch (error) {
+    next(error);
+  }
+};
