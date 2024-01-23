@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { authRepo } from "../repositories";
 import { Login, Register } from "../schema";
 import { APIException } from "../../../shared/exceprions";
+import { omit } from "lodash";
 
 export const registerUser = async (
   req: Request,
@@ -12,7 +13,9 @@ export const registerUser = async (
     const validation = await Register.safeParseAsync(req.body);
     if (!validation.success)
       throw new APIException(400, validation.error.format());
-    const user = await authRepo.register(validation.data);
+    const user = await authRepo.register(
+      omit(validation.data, ["confirmPassword"]) as any
+    );
     return res.json({ user });
   } catch (error) {
     next(error);

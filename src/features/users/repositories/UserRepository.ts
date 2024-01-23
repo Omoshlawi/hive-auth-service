@@ -14,7 +14,7 @@ class UserRepository {
    * @returns {User} object
    * @throws {ValidationException} if user with unique field found
    */
-  async create(entity: Partial<User>): Promise<User> {
+  async create(entity: Partial<User>): Promise<User> {    
     const errors: any = {};
     if (entity.username && (await this.exists({ username: entity.username })))
       errors["username"] = { _errors: ["Username taken"] };

@@ -13,7 +13,7 @@ export const Register = z
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords must much",
-    path: ["password", "confirmPassword"],
+    path: ["confirmPassword"],
   });
 
 export const Login = z.object({
