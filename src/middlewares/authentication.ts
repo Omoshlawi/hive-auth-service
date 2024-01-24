@@ -19,7 +19,7 @@ const authenticate = async (
     return next();
   } catch (err: any) {
     if (err.status) return res.status(err.status).json({ detail: err.detail });
-    return res.status(401).json({ detail: "Invalid token" });
+    return res.status(401).json({ detail: "Unauthorized - Invalid token" });
   }
 };
 

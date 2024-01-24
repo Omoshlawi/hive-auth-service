@@ -104,6 +104,30 @@ class AuthRepository {
       throw { status: 401, detail };
     }
   }
+  async refreshUserToken(token: string) {
+    if (!token) {
+      throw { status: 401, detail: "Unauthorized - Token required" };
+    }
+    try {
+      const { id, type: tokenType }: TokenPayload = verify(
+        token,
+        configuration.oauth.auth_secrete
+      ) as TokenPayload;
+      if (tokenType !== "refresh") throw Error();
+      const user = await userRepo.findOneById(id);
+      return this.generateUserToken(user)
+    } catch (error) {
+      let detail;
+      if (error instanceof TokenExpiredError) {
+        detail = "Unauthorized - Token expired";
+      } else if (error instanceof JsonWebTokenError) {
+        detail = "Unauthorized - Invalid Token";
+      } else {
+        detail = "Unauthorized - Invalid Token";
+      }
+      throw { status: 401, detail };
+    }
+  }
 
   generateUserToken(user: User) {
     const accessPayload: TokenPayload = { id: user.id, type: "access" };

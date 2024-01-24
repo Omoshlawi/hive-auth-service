@@ -52,8 +52,19 @@ export const authProviders = async (
   }
 };
 
-
-export const refreshToken =async (req:Request, res:Response, next:NextFunction) => {
-  
-  
-}
+export const refreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const refreshToken = req.header("x-refresh-token");
+  if (!refreshToken)
+    return res.status(401).json({ detail: "Unauthorized - Token missing" });
+  try {
+    const token = await authRepo.refreshUserToken(refreshToken);
+    return res.json(token);
+  } catch (err: any) {
+    if (err.status) return res.status(err.status).json({ detail: err.detail });
+    return res.status(401).json({ detail: "Unauthorized - Invalid token" });
+  }
+};
