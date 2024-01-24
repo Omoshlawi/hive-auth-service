@@ -20,6 +20,8 @@ export const configuration = {
     github_id: config.get("github_client_id") as string,
     github_secrete: config.get("github_client_secrete") as string,
     auth_secrete: config.get("auth_secrete") as string,
+    access_token_age: config.get("token.access_expiry") as string,
+    refresh_token_age: config.get("token.refresh_expiry") as string,
   },
 };
 export { isValidURL, parseMessage, registry } from "./helpers";

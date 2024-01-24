@@ -15,8 +15,9 @@ model Account {
   userId            String
   type              String
   provider          String
-  providerAccountId String
+  providerAccountId String   @default(cuid())
   refresh_token     String?  @db.Text
+  refresh_expire_at Int?
   access_token      String?  @db.Text
   expires_at        Int?
   token_type        String?

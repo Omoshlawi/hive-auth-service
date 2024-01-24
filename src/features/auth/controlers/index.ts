@@ -13,7 +13,7 @@ export const registerUser = async (
     const validation = await Register.safeParseAsync(req.body);
     if (!validation.success)
       throw new APIException(400, validation.error.format());
-    const user = await authRepo.register(
+    const user = await authRepo.credentialsSignUp(
       omit(validation.data, ["confirmPassword"]) as any
     );
     return res.json({ user });

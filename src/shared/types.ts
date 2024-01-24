@@ -50,3 +50,7 @@ export interface ValidationException {
   status: 400;
   errors: Record<string, any>;
 }
+
+export interface TokenPayload {
+  id: string;
+}
