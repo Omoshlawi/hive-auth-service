@@ -53,4 +53,5 @@ export interface ValidationException {
 
 export interface TokenPayload {
   id: string;
+  type: "refresh" | "access";
 }

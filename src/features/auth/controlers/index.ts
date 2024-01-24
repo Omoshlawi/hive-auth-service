@@ -16,7 +16,8 @@ export const registerUser = async (
     const user = await authRepo.credentialsSignUp(
       omit(validation.data, ["confirmPassword"]) as any
     );
-    return res.json({ user });
+    const token = authRepo.generateUserToken(user);
+    return res.json({ user, token });
   } catch (error) {
     next(error);
   }
@@ -32,7 +33,8 @@ export const loginUser = async (
     if (!validation.success)
       throw new APIException(400, validation.error.format());
     const user = await authRepo.login(validation.data);
-    return res.json({ user });
+    const token = authRepo.generateUserToken(user);
+    return res.json({ user, token });
   } catch (error) {
     next(error);
   }
@@ -49,3 +51,9 @@ export const authProviders = async (
     next(error);
   }
 };
+
+
+export const refreshToken =async (req:Request, res:Response, next:NextFunction) => {
+  
+  
+}

@@ -41,8 +41,6 @@ class AuthRepository {
     return user;
   }
 
-  async getOrCreateAccount() {}
-
   async login({ identifier, password }: z.infer<typeof Login>) {
     const users = await userRepo.findByCriteria({
       OR: [
@@ -87,13 +85,13 @@ class AuthRepository {
       throw { status: 401, detail: "Unauthorized - Token required" };
     }
     try {
-      const decoded = verify(
+      const { id, type: tokenType }: TokenPayload = verify(
         token,
         configuration.oauth.auth_secrete
       ) as TokenPayload;
-      const user = await userRepo.findOneById(decoded.id);
+      if (tokenType !== "access") throw Error();
+      const user = await userRepo.findOneById(id);
       return user;
-      // typeof decoded !== "string" ? decoded
     } catch (error) {
       let detail;
       if (error instanceof TokenExpiredError) {
@@ -108,14 +106,26 @@ class AuthRepository {
   }
 
   generateUserToken(user: User) {
-    const payload: TokenPayload = { id: user.id };
-    const accessToken = sign(payload, configuration.oauth.auth_secrete, {
+    const accessPayload: TokenPayload = { id: user.id, type: "access" };
+    const refreshPayload: TokenPayload = { id: user.id, type: "refresh" };
+    const accessToken = sign(accessPayload, configuration.oauth.auth_secrete, {
       expiresIn: configuration.oauth.access_token_age,
     });
-    const refreshToken = sign(payload, configuration.oauth.auth_secrete, {
-      expiresIn: configuration.oauth.refresh_token_age,
-    });
+    const refreshToken = sign(
+      refreshPayload,
+      configuration.oauth.auth_secrete,
+      {
+        expiresIn: configuration.oauth.refresh_token_age,
+      }
+    );
     return { accessToken, refreshToken };
+  }
+
+  async getUserProviderAccount(user: User, provider: string) {
+    const account = await AccountModel.findFirst({
+      where: { userId: user.id, provider },
+    });
+    return account;
   }
 }
 export default AuthRepository;

@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { userRepo } from "../repositories";
+import { UserRequest } from "../../../shared/types";
 
 export const getUsers = async (
   req: Request,
@@ -24,6 +25,18 @@ export const getUser = async (
       throw { status: 404, errors: { detail: "User not found" } };
     const users = await userRepo.findOneById(req.params.id);
     return res.json({ results: users });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const viewProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    return res.json((req as UserRequest).user);
   } catch (error) {
     next(error);
   }
