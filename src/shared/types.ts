@@ -1,3 +1,4 @@
+import { User } from "@prisma/client";
 import { Request } from "express";
 
 export interface Service {
@@ -9,7 +10,7 @@ export interface Service {
 }
 
 export interface UserRequest extends Request {
-  user: any;
+  user: User;
 }
 
 export interface Entity {

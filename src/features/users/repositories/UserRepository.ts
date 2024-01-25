@@ -14,7 +14,7 @@ class UserRepository {
    * @returns {User} object
    * @throws {ValidationException} if user with unique field found
    */
-  async create(entity: Partial<User>): Promise<User> {    
+  async create(entity: Partial<User>): Promise<User> {
     const errors: any = {};
     if (entity.username && (await this.exists({ username: entity.username })))
       errors["username"] = { _errors: ["Username taken"] };
@@ -110,11 +110,39 @@ class UserRepository {
       where: criteria,
     });
   }
-  async updateById(
-    id: string,
-    updates: Partial<User>
-  ): Promise<User | undefined> {
-    return await UserModel.update({ where: { id }, data: updates });
+  /**
+   * updates user if no other user with unique fields like phoneNumber, email or username dont exist
+   * @param id - user to update its information
+   * @param updates user information to be updated
+   * @throws {ValidationException}
+   * @returns updated user
+   */
+  async updateById(id: string, updates: Partial<User>): Promise<User> {
+    const currUser = await this.findOneById(id);
+    const errors: any = {};
+    if (updates.username) {
+      const newUser = await UserModel.findUnique({
+        where: { username: updates.username },
+      });
+      if (newUser && currUser.id !== newUser.id)
+        errors["username"] = { _errors: ["Username taken"] };
+    }
+    if (updates.email) {
+      const newUser = await UserModel.findUnique({
+        where: { email: updates.email },
+      });
+      if (newUser && currUser.id !== newUser.id)
+        errors["email"] = { _errors: ["Email taken"] };
+    }
+    if (updates.phoneNumber) {
+      const newUser = await UserModel.findUnique({
+        where: { phoneNumber: updates.phoneNumber },
+      });
+      if (newUser && currUser.id !== newUser.id)
+        errors["phoneNumber"] = { _errors: ["Phone number taken"] };
+    }
+    if (!isEmpty(errors)) throw { status: 400, errors };
+    return (await UserModel.update({ where: { id }, data: updates }))!;
   }
   async deleteById(id: string): Promise<User> {
     return await UserModel.delete({ where: { id } });
