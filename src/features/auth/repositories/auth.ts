@@ -115,7 +115,7 @@ class AuthRepository {
       ) as TokenPayload;
       if (tokenType !== "refresh") throw Error();
       const user = await userRepo.findOneById(id);
-      return this.generateUserToken(user)
+      return this.generateUserToken(user);
     } catch (error) {
       let detail;
       if (error instanceof TokenExpiredError) {
@@ -130,7 +130,15 @@ class AuthRepository {
   }
 
   generateUserToken(user: User) {
-    const accessPayload: TokenPayload = { id: user.id, type: "access" };
+    const accessPayload: TokenPayload = {
+      id: user.id,
+      type: "access",
+      name: user.name ?? undefined,
+      email: user.email ?? undefined,
+      username: user.username ?? undefined,
+      phoneNumber: user.phoneNumber ?? undefined,
+      image: user.image ?? undefined,
+    };
     const refreshPayload: TokenPayload = { id: user.id, type: "refresh" };
     const accessToken = sign(accessPayload, configuration.oauth.auth_secrete, {
       expiresIn: configuration.oauth.access_token_age,

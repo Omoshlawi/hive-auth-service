@@ -1,5 +1,4 @@
-import { date, z } from "zod";
-import { User } from "@prisma/client";
+import { z } from "zod";
 export const Register = z
   .object({
     name: z.string().min(1).optional(),

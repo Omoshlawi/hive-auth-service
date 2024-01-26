@@ -54,5 +54,10 @@ export interface ValidationException {
 
 export interface TokenPayload {
   id: string;
+  name?: string;
+  email?: string;
+  username?: string;
+  phoneNumber?: string;
+  image?: string;
   type: "refresh" | "access";
 }
