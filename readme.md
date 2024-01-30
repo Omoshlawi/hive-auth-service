@@ -172,3 +172,9 @@ Requirements for the listings app:
 - Pictures: Interior and exterior appearence of the houses
 - Status: e.g. Available for sale, rent.
 - Advantages for different properties: E.g Transport availablity, electricity
+
+
+
+```
+docker exec -it <container-id> psql -U <username> -d postgres -c "DROP DATABASE <database-name>;"
+```
