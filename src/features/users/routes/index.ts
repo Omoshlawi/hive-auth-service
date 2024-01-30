@@ -1,5 +1,11 @@
 import { Router } from "express";
-import { getUser, getUsers, updateProfile, viewProfile } from "../controlers";
+import {
+  deleteUser,
+  getUser,
+  getUsers,
+  updateProfile,
+  viewProfile,
+} from "../controlers";
 import { requireAuthenticated } from "../../../middlewares";
 
 const router = Router();
@@ -7,5 +13,6 @@ router.get("/", getUsers);
 router.get("/profile", requireAuthenticated, viewProfile);
 router.post("/profile", requireAuthenticated, updateProfile);
 router.get("/:id", getUser);
-router.put("/:id",requireAuthenticated, getUser);
+router.put("/:id", requireAuthenticated, getUser);
+router.delete("/:id", requireAuthenticated, deleteUser);
 export default router;

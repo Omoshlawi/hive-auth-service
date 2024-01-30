@@ -11,8 +11,8 @@ datasource db {
 }
 
 model Account {
-  id                String   @id @default(cuid())
-  userId            String
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @db.Uuid
   type              String
   provider          String
   providerAccountId String   @default(cuid())
@@ -32,7 +32,7 @@ model Account {
 }
 
 model User {
-  id              String    @id @default(cuid())
+  id              String    @id @default(uuid()) @db.Uuid
   name            String?
   firstName       String?
   lastName        String?

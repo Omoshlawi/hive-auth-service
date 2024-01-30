@@ -3,6 +3,7 @@ import { userRepo } from "../repositories";
 import { UserRequest } from "../../../shared/types";
 import { UpdateUserSchema } from "../schema";
 import { APIException } from "../../../shared/exceprions";
+import { z } from "zod";
 
 export const getUsers = async (
   req: Request,
@@ -23,8 +24,13 @@ export const getUser = async (
   next: NextFunction
 ) => {
   try {
-    if (!req.params.id)
+    const idValidation = z.string().uuid().safeParse(req.params.id);
+    if (
+      !idValidation.success ||
+      !(await userRepo.exists({ id: idValidation.data }))
+    ) {
       throw { status: 404, errors: { detail: "User not found" } };
+    }
     const users = await userRepo.findOneById(req.params.id);
     return res.json({ results: users });
   } catch (error) {
@@ -67,11 +73,36 @@ export const updateUser = async (
   next: NextFunction
 ) => {
   try {
-    // TODO Validate path param id making sure is uuid and also exists
+    const idValidation = z.string().uuid().safeParse(req.params.id);
+    if (
+      !idValidation.success ||
+      !(await userRepo.exists({ id: idValidation.data }))
+    ) {
+      throw { status: 404, errors: { detail: "User not found" } };
+    }
     const validation = await UpdateUserSchema.safeParseAsync(req.body);
     if (!validation.success)
       throw new APIException(400, validation.error.format());
     const user = await userRepo.updateById(req.params.id, validation.data);
+    return res.json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+export const deleteUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const idValidation = z.string().uuid().safeParse(req.params.id);
+    if (
+      !idValidation.success ||
+      !(await userRepo.exists({ id: idValidation.data }))
+    ) {
+      throw { status: 404, errors: { detail: "User not found" } };
+    }
+    const user = await userRepo.deleteById(req.params.id);
     return res.json(user);
   } catch (error) {
     next(error);
