@@ -61,3 +61,19 @@ export const updateProfile = async (
     next(error);
   }
 };
+export const updateUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // TODO Validate path param id making sure is uuid and also exists
+    const validation = await UpdateUserSchema.safeParseAsync(req.body);
+    if (!validation.success)
+      throw new APIException(400, validation.error.format());
+    const user = await userRepo.updateById(req.params.id, validation.data);
+    return res.json(user);
+  } catch (error) {
+    next(error);
+  }
+};

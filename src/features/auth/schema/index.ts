@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { string, z } from "zod";
 export const Register = z
   .object({
     name: z.string().min(1).optional(),
@@ -18,4 +18,15 @@ export const Register = z
 export const Login = z.object({
   identifier: z.string().min(1, { message: "Identifier required" }),
   password: z.string().min(4, { message: "Password required" }),
+});
+
+export const OauthAuthSchema = z.object({
+  providerAccountId: z.string(),
+  name: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  email: z.string().email().optional(),
+  image: z.string().optional(),
+  type: z.enum(["google", "apple"]),
+  provider: z.string(),
 });

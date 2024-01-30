@@ -7,4 +7,5 @@ router.get("/", getUsers);
 router.get("/profile", requireAuthenticated, viewProfile);
 router.post("/profile", requireAuthenticated, updateProfile);
 router.get("/:id", getUser);
+router.put("/:id",requireAuthenticated, getUser);
 export default router;

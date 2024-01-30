@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { Login, Register } from "../schema";
+import { Login, OauthAuthSchema, Register } from "../schema";
 import bcrypt from "bcrypt";
 import { User } from "@prisma/client";
 import { userRepo } from "../../users/repositories";
-import { AccountModel } from "../models";
+import { AccountModel, UserModel } from "../models";
 import {
   sign,
   verify,
@@ -16,24 +16,24 @@ import { configuration } from "../../../utils";
 import { TokenPayload } from "../../../shared/types";
 
 class AuthRepository {
-  async credentialsSignUp(data: z.infer<typeof Register>) {
+  async credentialsSignUp(data: z.infer<typeof Register>): Promise<User> {
     const { password } = data;
     const hash = await this.hashPassword(password);
     const user = await userRepo.create({ ...data, password: hash });
-    const { accessToken, refreshToken } = this.generateUserToken(user);
+    // const { accessToken, refreshToken } = this.generateUserToken(user);
     const account = await AccountModel.create({
       data: {
         provider: "Credentials",
         type: "credentials",
         userId: user.id,
-        access_token: accessToken,
-        refresh_token: refreshToken,
+        // access_token: accessToken,
+        // refresh_token: refreshToken,
       },
     });
     return await userRepo.findOneById(user.id);
   }
 
-  async register(data: z.infer<typeof Register>) {
+  async register(data: z.infer<typeof Register>): Promise<User> {
     const { password } = data;
     const hash = await this.hashPassword(password);
     const user = await userRepo.create({ ...data, password: hash });
@@ -41,7 +41,7 @@ class AuthRepository {
     return user;
   }
 
-  async login({ identifier, password }: z.infer<typeof Login>) {
+  async login({ identifier, password }: z.infer<typeof Login>): Promise<User> {
     const users = await userRepo.findByCriteria({
       OR: [
         { username: identifier },
@@ -158,6 +158,37 @@ class AuthRepository {
       where: { userId: user.id, provider },
     });
     return account;
+  }
+
+  async oauthSignin({
+    provider,
+    providerAccountId,
+    type,
+    email,
+    firstName,
+    image,
+    lastName,
+    name,
+  }: z.infer<typeof OauthAuthSchema>): Promise<User> {
+    let account = await AccountModel.findFirst({
+      where: { type: type as string, providerAccountId },
+    });
+    if (account !== null) return (await userRepo.findByAccount(account))!;
+    let user;
+    if (email) user = await userRepo.findOne({ email });
+    if (user === null)
+      user = await UserModel.create({
+        data: { email, firstName, lastName, image, name },
+      });
+    await AccountModel.create({
+      data: {
+        provider,
+        providerAccountId,
+        type: type as string,
+        userId: user!.id,
+      },
+    });
+    return user!;
   }
 }
 export default AuthRepository;

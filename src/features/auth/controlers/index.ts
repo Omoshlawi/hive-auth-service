@@ -3,7 +3,6 @@ import { authRepo } from "../repositories";
 import { Login, Register } from "../schema";
 import { APIException } from "../../../shared/exceprions";
 import { omit } from "lodash";
-export * from "./oauthCallbacks";
 export * from "./oauthSignIn";
 
 export const registerUser = async (
@@ -41,19 +40,6 @@ export const loginUser = async (
     next(error);
   }
 };
-
-export const authProviders = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    return res.json({ action: "Auth Providers!" });
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const refreshToken = async (
   req: Request,
   res: Response,

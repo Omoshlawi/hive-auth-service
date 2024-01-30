@@ -57,7 +57,7 @@ class UserRepository {
                 id: account.id,
               },
               {
-                provider: account.provider,
+                type: account.type,
                 providerAccountId: account.providerAccountId,
               },
             ],

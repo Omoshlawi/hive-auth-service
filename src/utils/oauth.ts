@@ -16,8 +16,12 @@ const client = new OAuth2Client(
 export const getProfileInfo = async (code: string) => {
   const r = await client.getToken(code);
   const idToken = r.tokens.id_token;
+  return await verifyToken(idToken!);
+};
+
+export const verifyToken = async (idToken: string) => {
   const ticket = await client.verifyIdToken({
-    idToken: idToken!,
+    idToken: idToken,
     audience: configuration.oauth.google_id,
   });
   const payload = ticket.getPayload();
