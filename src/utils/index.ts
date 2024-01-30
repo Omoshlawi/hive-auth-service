@@ -25,3 +25,4 @@ export const configuration = {
   },
 };
 export { isValidURL, parseMessage, registry } from "./helpers";
+export * from "./oauth";

@@ -3,6 +3,8 @@ import { authRepo } from "../repositories";
 import { Login, Register } from "../schema";
 import { APIException } from "../../../shared/exceprions";
 import { omit } from "lodash";
+export * from "./oauthCallbacks";
+export * from "./oauthSignIn";
 
 export const registerUser = async (
   req: Request,

@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { loginUser } from "../controlers";
+import { googleSignIn, loginUser } from "../controlers";
 
 const router = Router();
 router.post("/credentials", loginUser);
+router.get("/google", googleSignIn);
 export default router;
