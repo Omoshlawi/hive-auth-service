@@ -48,6 +48,7 @@ class AuthRepository {
         { email: identifier },
         { phoneNumber: identifier },
       ],
+      accounts: { some: { type: "credentials" } },
     });
     const passwordChecks = await Promise.all(
       users.map((user) => this.checkPassword(user, password))
