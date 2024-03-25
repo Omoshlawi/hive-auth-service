@@ -63,6 +63,95 @@ This flow assumes the use of OpenID Connect for user information claims. You can
 Refresh tokens can be used to obtain new access tokens without user interaction when the current access token expires.
 Remember to implement proper error handling and security measures throughout the flow.
 By following these steps and customizing them to your specific providers and technologies, you can achieve a secure and efficient OAuth integration for your microservices app with seamless user experience for various frontend frameworks.
+http://localhost:3000/
+---
+
+Achieving a combination of both methods (using cookies for web-based clients and the Authorization header for mobile or non-browser clients) involves implementing logic on your server to handle both scenarios. Here's a general guide on how you might approach this:
+
+### 1. Server-Side Implementation:
+
+#### Handling Cookies:
+1. **Configure Cookie Middleware:**
+   - Use a cookie-parser middleware to parse incoming cookies in your Express app.
+
+     ```javascript
+     const cookieParser = require('cookie-parser');
+     app.use(cookieParser());
+     ```
+
+2. **Generate and Send Token as a Cookie:**
+   - When a user logs in or authenticates, generate a JWT token.
+   - Set the token as a secure HTTP-only cookie.
+
+     ```javascript
+     res.cookie('jwtToken', yourGeneratedToken, { httpOnly: true, secure: true });
+     ```
+
+#### Handling Authorization Header:
+1. **Verify Token in Authorization Header:**
+   - For requests that include an Authorization header, extract the token and verify it.
+
+     ```javascript
+     const jwt = require('jsonwebtoken');
+
+     // Extract token from Authorization header
+     const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
+
+     // Verify and decode the token
+     jwt.verify(token, 'your-secret-key', (err, decoded) => {
+       if (err) {
+         // Handle token verification failure
+         return res.status(401).json({ message: 'Unauthorized' });
+       }
+
+       // Token is valid, proceed with the request
+       req.user = decoded;
+       next();
+     });
+     ```
+
+### 2. Client-Side Implementation:
+
+#### Web-Based Clients (Cookies):
+1. **Include Credentials in Fetch Requests:**
+   - When making a request from a web-based client, include the `credentials: 'include'` option in your Fetch API calls.
+
+     ```javascript
+     fetch('your-api-endpoint', {
+       method: 'GET',
+       credentials: 'include',
+       // other options...
+     });
+     ```
+
+   - This ensures that cookies are sent with the request.
+
+#### Mobile or Non-Browser Clients (Authorization Header):
+1. **Include Token in Headers:**
+   - When making a request from mobile or non-browser clients, include the JWT token in the Authorization header.
+
+     ```javascript
+     fetch('your-api-endpoint', {
+       method: 'GET',
+       headers: {
+         Authorization: 'Bearer your-jwt-token',
+         // other headers...
+       },
+       // other options...
+     });
+     ```
+
+### 3. Handling Cross-Origin Resource Sharing (CORS):
+
+- If you are dealing with cross-origin requests, configure your server to handle CORS properly. You may need to set appropriate headers and options to allow the cross-origin requests.
+
+### 4. Considerations:
+
+- Ensure proper error handling and security measures in both scenarios.
+- Adjust the code snippets based on your specific authentication and authorization logic.
+- Always use HTTPS to secure communication.
+
+This approach allows your server to handle authentication in a flexible way, accommodating both web-based and non-browser clients. Adjust the details according to the authentication mechanism and library you are using, and keep your security measures up to date.
 
 # Instructions
 

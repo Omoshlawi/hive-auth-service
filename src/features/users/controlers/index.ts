@@ -32,7 +32,7 @@ export const getUser = async (
       throw { status: 404, errors: { detail: "User not found" } };
     }
     const users = await userRepo.findOneById(req.params.id);
-    return res.json({ results: users });
+    return res.json(users);
   } catch (error) {
     next(error);
   }
