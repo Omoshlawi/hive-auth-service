@@ -13,6 +13,7 @@ datasource db {
 model Account {
   id                String   @id @default(uuid()) @db.Uuid
   userId            String   @db.Uuid
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   type              String
   provider          String
   providerAccountId String   @default(cuid())
@@ -26,28 +27,35 @@ model Account {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@unique([type, providerAccountId])
 }
 
 model User {
   id              String    @id @default(uuid()) @db.Uuid
-  name            String?
-  firstName       String?
-  lastName        String?
-  email           String?   @unique
   username        String?   @unique
-  phoneNumber     String?   @unique
-  gender          Gender    @default(UNKNOWN)
   accountVerified DateTime?
-  image           String?
   password        String?
   lastLogin       DateTime?
   active          Boolean   @default(true)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   accounts        Account[]
+  person          Person?
+}
+
+model Person {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String?  @unique @db.Uuid
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name        String?
+  firstName   String?
+  lastName    String?
+  email       String?  @unique
+  phoneNumber String?  @unique
+  gender      Gender   @default(UNKNOWN)
+  image       Json? //{_id:string, path:string, type: "remote"|"local"} Upload file that could be remote or local
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model VerificationToken {

@@ -1,4 +1,4 @@
-import { Account, Prisma, User } from "@prisma/client";
+import { Account, Person, Prisma, User } from "@prisma/client";
 import { AccountModel, UserModel } from "../../auth/models";
 import { isEmpty } from "lodash";
 import { NotFoundException, ValidationException } from "../../../shared/types";
@@ -8,26 +8,72 @@ import { NotFoundException, ValidationException } from "../../../shared/types";
  */
 
 class UserRepository {
+  selectFields: Prisma.UserSelect = {
+    id: true,
+    username: true,
+    password: true,
+    accounts: true,
+    accountVerified: true,
+    active: true,
+    person: {
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        gender: true,
+        phoneNumber: true,
+        image: true,
+        name: true,
+
+        createdAt: true,
+        updatedAt: true,
+      },
+    },
+
+    lastLogin: true,
+    createdAt: true,
+    updatedAt: true,
+  };
   /**
    * creates user if no other user with unique fields like phoneNumber, email or username dont exist
    * @param entity User information sed to create new user
    * @returns {User} object
    * @throws {ValidationException} if user with unique field found
    */
-  async create(entity: Partial<User>): Promise<User> {
+
+  async create(entity: Partial<User> & Partial<Person>): Promise<User> {
     const errors: any = {};
     if (entity.username && (await this.exists({ username: entity.username })))
       errors["username"] = { _errors: ["Username taken"] };
-    if (entity.email && (await this.exists({ email: entity.email })))
+    if (
+      entity.email &&
+      (await this.exists({ person: { email: entity.email } }))
+    )
       errors["email"] = { _errors: ["Email taken"] };
     if (
       entity.phoneNumber &&
-      (await this.exists({ phoneNumber: entity.phoneNumber }))
+      (await this.exists({ person: { phoneNumber: entity.phoneNumber } }))
     )
-      errors["phoneNumber"] = { _errors: ["Username taken"] }; //Shape error to match zod formated validation error
+      errors["phoneNumber"] = { _errors: ["phone number taken"] }; //Shape error to match zod formated validation error
     if (!isEmpty(errors)) throw { status: 400, errors }; //If errors object has properties then throw exeption
     return await UserModel.create({
-      data: entity,
+      data: {
+        username: entity.username,
+        password: entity.password,
+        person: {
+          create: {
+            phoneNumber: entity.phoneNumber,
+            email: entity.email,
+            firstName: entity.firstName,
+            lastName: entity.firstName,
+            gender: entity.gender,
+            image: entity.image as any,
+            name: entity.name,
+          },
+        },
+      },
+      select: this.selectFields,
     });
   }
   /**
@@ -37,7 +83,10 @@ class UserRepository {
    * @returns {User} user object
    */
   async findOneById(id: string): Promise<User> {
-    const user = await UserModel.findFirst({ where: { id } });
+    const user = await UserModel.findFirst({
+      where: { id },
+      select: this.selectFields,
+    });
     if (!user) throw { status: 404, errors: { detail: "User not found" } };
     return user;
   }
@@ -108,6 +157,7 @@ class UserRepository {
   async findByCriteria(criteria: Prisma.UserWhereInput): Promise<User[]> {
     return await UserModel.findMany({
       where: criteria,
+      select: this.selectFields,
     });
   }
   /**
@@ -117,32 +167,78 @@ class UserRepository {
    * @throws {ValidationException}
    * @returns updated user
    */
-  async updateById(id: string, updates: Partial<User>): Promise<User> {
+  async updateById(
+    id: string,
+    updates: Partial<User> & Partial<Person>
+  ): Promise<User> {
     const currUser = await this.findOneById(id);
     const errors: any = {};
     if (updates.username) {
-      const newUser = await UserModel.findUnique({
-        where: { username: updates.username },
+      const newUser = await UserModel.findFirst({
+        where: {
+          AND: [
+            { username: updates.username },
+            { id: { not: { equals: currUser.id } } }, // Exclude the user being updated
+          ],
+        },
       });
-      if (newUser && currUser.id !== newUser.id)
-        errors["username"] = { _errors: ["Username taken"] };
+      if (newUser) errors["username"] = { _errors: ["Username taken"] };
     }
     if (updates.email) {
-      const newUser = await UserModel.findUnique({
-        where: { email: updates.email },
+      const newUser = await UserModel.findFirst({
+        where: {
+          AND: [
+            { person: { email: updates.email } },
+            { id: { not: { equals: currUser.id } } }, // Exclude the user being updated
+          ],
+        },
       });
-      if (newUser && currUser.id !== newUser.id)
-        errors["email"] = { _errors: ["Email taken"] };
+      if (newUser) errors["email"] = { _errors: ["Email taken"] };
     }
     if (updates.phoneNumber) {
-      const newUser = await UserModel.findUnique({
-        where: { phoneNumber: updates.phoneNumber },
+      const newUser = await UserModel.findFirst({
+        where: {
+          AND: [
+            { person: { phoneNumber: updates.phoneNumber } },
+            { id: { not: { equals: currUser.id } } },
+          ],
+        },
       });
-      if (newUser && currUser.id !== newUser.id)
-        errors["phoneNumber"] = { _errors: ["Phone number taken"] };
+      if (newUser) errors["phoneNumber"] = { _errors: ["Phone number taken"] };
     }
     if (!isEmpty(errors)) throw { status: 400, errors };
-    return (await UserModel.update({ where: { id }, data: updates }))!;
+    const {
+      accountVerified,
+      active,
+      email,
+      firstName,
+      gender,
+      image,
+      lastName,
+      name,
+      phoneNumber,
+      username,
+    } = updates;
+    return (await UserModel.update({
+      where: { id },
+      data: {
+        accountVerified,
+        username,
+        active,
+        person: {
+          update: {
+            firstName,
+            lastName,
+            name,
+            gender,
+            email,
+            image: image as any,
+            phoneNumber,
+          },
+        },
+      },
+      select: this.selectFields,
+    }))!;
   }
   async deleteById(id: string): Promise<User> {
     return await UserModel.delete({ where: { id } });

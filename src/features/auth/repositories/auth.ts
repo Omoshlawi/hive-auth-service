@@ -17,9 +17,9 @@ import { TokenPayload } from "../../../shared/types";
 
 class AuthRepository {
   async credentialsSignUp(data: z.infer<typeof Register>): Promise<User> {
-    const { password } = data;
+    const { password, ...others } = data;
     const hash = await this.hashPassword(password);
-    const user = await userRepo.create({ ...data, password: hash });
+    const user = await userRepo.create({ ...others, password: hash });
     // const { accessToken, refreshToken } = this.generateUserToken(user);
     const account = await AccountModel.create({
       data: {
@@ -45,8 +45,8 @@ class AuthRepository {
     const users = await userRepo.findByCriteria({
       OR: [
         { username: identifier },
-        { email: identifier },
-        { phoneNumber: identifier },
+        { person: { email: identifier } },
+        { person: { phoneNumber: identifier } },
       ],
       accounts: { some: { type: "credentials" } },
     });
@@ -134,11 +134,11 @@ class AuthRepository {
     const accessPayload: TokenPayload = {
       id: user.id,
       type: "access",
-      name: user.name ?? undefined,
-      email: user.email ?? undefined,
+      name: (user as any)?.person?.name ?? undefined,
+      email: (user as any)?.person?.email ?? undefined,
       username: user.username ?? undefined,
-      phoneNumber: user.phoneNumber ?? undefined,
-      image: user.image ?? undefined,
+      phoneNumber: (user as any)?.person?.phoneNumber ?? undefined,
+      image: (user as any)?.person?.image ?? undefined,
     };
     const refreshPayload: TokenPayload = { id: user.id, type: "refresh" };
     const accessToken = sign(accessPayload, configuration.oauth.auth_secrete, {
@@ -176,10 +176,20 @@ class AuthRepository {
     });
     if (account !== null) return (await userRepo.findByAccount(account))!;
     let user;
-    if (email) user = await userRepo.findOne({ email });
+    if (email) user = await userRepo.findOne({ person: { email } });
     if (user === null)
       user = await UserModel.create({
-        data: { email, firstName, lastName, image, name },
+        data: {
+          person: {
+            create: {
+              email,
+              firstName,
+              lastName,
+              image: image ? { path: image, type: "remote" } : undefined,
+              name,
+            },
+          },
+        },
       });
     await AccountModel.create({
       data: {
