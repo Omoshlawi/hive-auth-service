@@ -4,6 +4,7 @@ import { UserRequest } from "../../../shared/types";
 import { UpdateUserSchema } from "../schema";
 import { APIException } from "../../../shared/exceprions";
 import { z } from "zod";
+export * from "./person";
 
 export const getUsers = async (
   req: Request,
