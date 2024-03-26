@@ -26,3 +26,21 @@ export const configuration = {
 };
 export { isValidURL, parseMessage, registry } from "./helpers";
 export * from "./oauth";
+export const messageBroker = {
+  url: config.get("message_broker_url") as string,
+  exchanges: {
+    hive: {
+      name: config.get("message_broker.exchanges.hive.name") as string,
+      queues: {
+        logging: {
+          name: config.get(
+            "message_broker.exchanges.hive.queues.logging.name"
+          ) as string,
+          binding_key: config.get(
+            "message_broker.exchanges.hive.queues.logging.binding_key"
+          ) as string,
+        },
+      },
+    },
+  },
+};

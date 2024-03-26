@@ -6,7 +6,7 @@ import { handleErrors } from "../middlewares";
 import logger from "../shared/logger";
 // import { oauthRoutesHandler } from "./auth.config";
 import prisma from "../../prisma/client";
-import { default as usersRouter } from "../features/users/routes";
+import { personRouter, default as usersRouter } from "../features/users/routes";
 import { default as authRoutes } from "../features/auth/routes";
 
 /**
@@ -48,6 +48,7 @@ export const configureExpressApp = async (app: Application) => {
   //------------------- routes --------------------------------
   // Add routes here
   app.use("/users", usersRouter);
+  app.use("/person", personRouter);
   app.use("/api/auth", authRoutes);
   //-------------------end routes-----------------------------
 

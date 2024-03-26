@@ -3,6 +3,8 @@ import { personRepo } from "../repositories";
 import { z } from "zod";
 import { PersonSchema } from "../schema";
 import { APIException } from "../../../shared/exceprions";
+import logger from "../../../shared/logger";
+import { asynTasks } from "../../../tasks";
 
 export const getPeople = async (
   req: Request,
@@ -47,7 +49,13 @@ export const createPerson = async (
     const person = await personRepo.create(validation.data);
     return res.json(person);
   } catch (error) {
-    next(error);
+    // Rollback file uploads asyncronousely
+    try {
+      await asynTasks.deleteFileAsync([req.body.image._id].filter((p) => p));
+    } catch (err) {
+      logger.warn(err);
+    }
+    return next(error);
   }
 };
 export const updatePerson = async (
@@ -67,6 +75,11 @@ export const updatePerson = async (
     const person = await personRepo.updateById(req.params.id, validation.data);
     return res.json(person);
   } catch (error) {
+    try {
+      await asynTasks.deleteFileAsync([req.body.image._id].filter((p) => p));
+    } catch (err) {
+      logger.warn(err);
+    }
     next(error);
   }
 };

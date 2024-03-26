@@ -4,6 +4,8 @@ import { UserRequest } from "../../../shared/types";
 import { UpdateUserSchema } from "../schema";
 import { APIException } from "../../../shared/exceprions";
 import { z } from "zod";
+import { asynTasks } from "../../../tasks";
+import logger from "../../../shared/logger";
 export * from "./person";
 
 export const getUsers = async (
@@ -65,6 +67,12 @@ export const updateProfile = async (
     );
     return res.json(user);
   } catch (error) {
+    // Rollback file uploads asyncronousely
+    try {
+      await asynTasks.deleteFileAsync([req.body.image._id].filter((p) => p));
+    } catch (err) {
+      logger.warn(err);
+    }
     next(error);
   }
 };

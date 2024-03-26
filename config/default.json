@@ -7,6 +7,23 @@
     "url": "http://localhost:9000",
     "version": "*"
   },
+  "message_broker": {
+    "exchanges": {
+      "hive": {
+        "name": "HIVE",
+        "queues": {
+          "patient": {
+            "name": "PATIENT_QUEUE",
+            "binding_key": "PATIENT_SERVICE"
+          },
+          "logging": {
+            "name": "LOGGING_QUEUE",
+            "binding_key": "LOGGING_SERVICE"
+          }
+        }
+      }
+    }
+  },
   "token": {
     "access_expiry": "2h",
     "refresh_expiry": "1d"

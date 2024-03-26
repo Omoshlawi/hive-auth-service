@@ -1,8 +1,12 @@
 import { $Enums, Person, Prisma } from "@prisma/client";
 import { Repository } from "../../../shared/types";
 import { PersonModel } from "../../auth/models";
+import logger from "../../../shared/logger";
+import MessageBroker from "../../../shared/MessageBroker";
+import { configuration, messageBroker } from "../../../utils";
 
 class PersonRepository implements Repository<Person> {
+  
   selectFields: Prisma.PersonSelect = {
     id: true,
     firstName: true,
